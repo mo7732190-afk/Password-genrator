@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { usePasswordStore } from "../store";
 
 const GeneratedPassword = () => {
+    const [copyMessage, setCopyMessage] = useState("");
     const {
         length,
         setLength,
@@ -13,8 +15,17 @@ const GeneratedPassword = () => {
         includeLowercase,
         toggleLowercase,
         generatedPassword,
+        passwordStrength,
         generatePassword,
     } = usePasswordStore();
+
+    const copyPassword = async () => {
+      if (!generatedPassword) return;
+
+      await navigator.clipboard.writeText(generatedPassword);
+      setCopyMessage("Copied!");
+      window.setTimeout(() => setCopyMessage(""), 2000);
+    };
 
   return (
     <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100 px-4 py-10">
@@ -41,7 +52,7 @@ const GeneratedPassword = () => {
           <input
             id="password-length"
             type="number"
-            min={1}
+            min={4}
             max={128}
             value={length}
             onChange={(event) => setLength(Number(event.target.value))}
@@ -74,18 +85,38 @@ const GeneratedPassword = () => {
           Generate Password
         </button>
 
+        {passwordStrength && !generatedPassword && (
+          <p className="rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+            {passwordStrength}
+          </p>
+        )}
+
         {generatedPassword && (
           <div className="mt-2">
-            <label htmlFor="generated-password" className="mb-2 block text-sm font-semibold text-slate-700">
-              Generated Password
-            </label>
-            <input
-              id="generated-password"
-              type="text"
-              value={generatedPassword}
-              readOnly
-              className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-mono text-sm text-emerald-950 shadow-inner outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-            />
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <label htmlFor="generated-password" className="block text-sm font-semibold text-slate-700">
+                Generated Password
+              </label>
+              <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                {passwordStrength}
+              </span>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                id="generated-password"
+                type="text"
+                value={generatedPassword}
+                readOnly
+                className="min-w-0 flex-1 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-mono text-sm text-emerald-950 shadow-inner outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+              />
+              <button
+                type="button"
+                onClick={copyPassword}
+                className="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-emerald-600/20 transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200"
+              >
+                {copyMessage || "Copy Password"}
+              </button>
+            </div>
           </div>
         )}
       </div>
