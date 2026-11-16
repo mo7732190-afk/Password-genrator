@@ -38,29 +38,31 @@ const GeneratedPassword = () => {
           Generate Password
         </button>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold text-slate-700">Generated Password</h2>
+            <h2 className="text-[17px] font-semibold text-slate-800 sm:text-[18px]">
+              Generated Password
+            </h2>
             {passwordStrength && generatedPassword && (
-              <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
+              <span className="rounded-full bg-emerald-200 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
                 {passwordStrength}
               </span>
             )}
           </div>
 
           {generatedPassword && (
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-100/90 p-3 shadow-inner shadow-emerald-200/40">
               <input
                 id="generated-password"
                 type="text"
                 value={generatedPassword}
                 readOnly
-                className="min-w-0 flex-1 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-mono text-sm text-emerald-950 shadow-inner outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                className="min-w-0 flex-1 border-0 bg-transparent px-2 py-2 font-mono text-base text-emerald-950 outline-none"
               />
               <button
                 type="button"
                 onClick={copyPassword}
-                className="shrink-0 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-emerald-600/20 transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200"
+                className="shrink-0 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-emerald-600/20 transition hover:bg-emerald-700"
               >
                 {copyMessage || "Copy Password"}
               </button>
