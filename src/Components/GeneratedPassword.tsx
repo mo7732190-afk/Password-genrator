@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { usePasswordStore } from "../store";
 
 const GeneratedPassword = () => {
@@ -27,56 +28,132 @@ const GeneratedPassword = () => {
     window.setTimeout(() => setCopyMessage(""), 2000);
   };
 
+  const getStrengthStyle = (strength: string) => {
+    const lower = strength?.toLowerCase() || "";
+    if (lower.includes("strong")) return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+    if (lower.includes("medium")) return "bg-amber-500/10 text-amber-400 border-amber-500/20";
+    return "bg-rose-500/10 text-rose-400 border-rose-500/20";
+  };
+
   return (
-    <main className="flex min-h-screen w-full items-center justify-center bg-[#edf1f4] px-4 py-8">
-      <div className="w-full max-w-[760px] rounded-[28px] border border-white/80 bg-white/90 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.10)] sm:p-6">
-        <button
-          type="button"
-          onClick={generatePassword}
-          className="mb-6 flex w-full items-center justify-center rounded-[18px] bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4 text-2xl font-bold text-white shadow-[0_10px_20px_rgba(37,99,235,0.25)] transition hover:brightness-105"
-        >
-          Generate Password
-        </button>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-[18px] font-semibold text-slate-800 sm:text-[20px]">
-              Generated Password
-            </h2>
+    <div className="flex min-h-screen w-full items-center justify-center  px-4 py-10">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-135 rounded-3xl border border-slate-800 bg-slate-900 p-6 shadow-2xl sm:p-8"
+      >
+        {/* Header & Strength Badge */}
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <motion.h2 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-xl font-bold tracking-tight text-white"
+          >
+            Password Generator
+          </motion.h2>
+          <AnimatePresence>
             {passwordStrength && generatedPassword && (
-              <span className="rounded-full bg-[#bdeed8] px-3 py-1 text-[12px] font-semibold text-[#1f7b4c]">
-                {passwordStrength}
-              </span>
-            )}
-          </div>
-
-          {generatedPassword && (
-            <div className="flex items-center gap-3 rounded-[16px] border border-[#a9e0c5] bg-[#cfeee0] p-3 shadow-inner shadow-[#bfe8d3]">
-              <div className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[18px] font-medium text-slate-800">
-                {generatedPassword}
-              </div>
-              <button
-                type="button"
-                onClick={copyPassword}
-                className="shrink-0 rounded-[14px] bg-[#1ca66c] px-5 py-3 text-base font-bold text-white shadow-[0_6px_12px_rgba(28,166,108,0.25)] transition hover:bg-[#169b5f]"
+              <motion.span
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.5, opacity: 0 }}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold tracking-wide uppercase shadow-sm ${getStrengthStyle(
+                  passwordStrength
+                )}`}
               >
-                {copyMessage || "Copy Password"}
-              </button>
-            </div>
-          )}
+                {passwordStrength}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
 
-        {passwordStrength && !generatedPassword && (
-          <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
-            {passwordStrength}
-          </p>
-        )}
+        {/* Generated Password Output Box */}
+        <motion.div 
+          key={generatedPassword}
+          initial={{ scale: 0.98 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          className="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-950 p-4 shadow-inner"
+        >
+          <div className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-lg font-semibold text-teal-400">
+            <AnimatePresence mode="wait">
+              {generatedPassword ? (
+                <motion.span
+                  key={generatedPassword}
+                  initial={{ opacity: 0, y: 6, filter: "blur(4px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, y: -6, filter: "blur(4px)" }}
+                  transition={{ duration: 0.2 }}
+                  className="inline-block"
+                >
+                  {generatedPassword}
+                </motion.span>
+              ) : (
+                <span className="font-sans text-sm font-normal text-slate-500">
+                  Click generate to create password...
+                </span>
+              )}
+            </AnimatePresence>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            type="button"
+            onClick={copyPassword}
+            disabled={!generatedPassword}
+            className="relative shrink-0 overflow-hidden rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={copyMessage || "default"}
+                initial={{ y: 8, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -8, opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="block"
+              >
+                {copyMessage || "Copy"}
+              </motion.span>
+            </AnimatePresence>
+          </motion.button>
+        </motion.div>
 
-        <div className="mt-6 flex flex-col gap-3">
+        {/* Warning / Error Message */}
+        <AnimatePresence>
+          {passwordStrength && !generatedPassword && (
+            <motion.p
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-400"
+            >
+              {passwordStrength}
+            </motion.p>
+          )}
+        </AnimatePresence>
+
+        {/* Controls Section */}
+        <div className="space-y-4">
+          {/* Length Input */}
           <div>
-            <label htmlFor="password-length" className="mb-2 block text-[15px] font-semibold text-slate-700">
-              Password Length
-            </label>
+            <div className="mb-2 flex items-center justify-between">
+              <label
+                htmlFor="password-length"
+                className="text-sm font-semibold text-slate-300"
+              >
+                Password Length
+              </label>
+              <motion.span 
+                key={length}
+                initial={{ scale: 1.3, color: "#2dd4bf" }}
+                animate={{ scale: 1, color: "#2dd4bf" }}
+                className="rounded-md bg-slate-950 px-2.5 py-0.5 font-mono text-sm font-bold text-teal-400 border border-slate-800"
+              >
+                {length}
+              </motion.span>
+            </div>
             <input
               id="password-length"
               type="number"
@@ -84,32 +161,48 @@ const GeneratedPassword = () => {
               max={128}
               value={length}
               onChange={(event) => setLength(Number(event.target.value))}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-[16px] text-slate-900 shadow-inner outline-none transition hover:border-slate-300 focus:border-blue-500 focus:bg-white"
+              className="w-full rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-base font-medium text-white outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10"
             />
           </div>
 
-          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-[15px] font-medium text-slate-700 transition hover:border-blue-200 hover:bg-slate-50">
-            <input className="size-4 accent-blue-600" type="checkbox" checked={includeNumbers} onChange={toggleNumbers} />
-            Include Numbers
-          </label>
-
-          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-[15px] font-medium text-slate-700 transition hover:border-blue-200 hover:bg-slate-50">
-            <input className="size-4 accent-blue-600" type="checkbox" checked={includeSymbols} onChange={toggleSymbols} />
-            Include Symbols
-          </label>
-
-          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-[15px] font-medium text-slate-700 transition hover:border-blue-200 hover:bg-slate-50">
-            <input className="size-4 accent-blue-600" type="checkbox" checked={includeUppercase} onChange={toggleUppercase} />
-            Include Uppercase Letters
-          </label>
-
-          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-[15px] font-medium text-slate-700 transition hover:border-blue-200 hover:bg-slate-50">
-            <input className="size-4 accent-blue-600" type="checkbox" checked={includeLowercase} onChange={toggleLowercase} />
-            Include Lowercase Letters
-          </label>
+          {/* Checkboxes Grid */}
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            {[
+              { label: "Uppercase (A-Z)", checked: includeUppercase, onChange: toggleUppercase },
+              { label: "Lowercase (a-z)", checked: includeLowercase, onChange: toggleLowercase },
+              { label: "Numbers (0-9)", checked: includeNumbers, onChange: toggleNumbers },
+              { label: "Symbols (!@#$)", checked: includeSymbols, onChange: toggleSymbols },
+            ].map((item, index) => (
+              <motion.label
+                key={index}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm font-medium text-slate-300 transition hover:border-teal-600/40"
+              >
+                <input
+                  className="size-4 rounded accent-teal-500"
+                  type="checkbox"
+                  checked={item.checked}
+                  onChange={item.onChange}
+                />
+                {item.label}
+              </motion.label>
+            ))}
+          </div>
         </div>
-      </div>
-    </main>
+
+        {/* Generate Button */}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          type="button"
+          onClick={generatePassword}
+          className="mt-6 flex w-full items-center justify-center rounded-2xl bg-teal-600 px-5 py-3.5 text-base font-bold text-white shadow-lg transition-all hover:bg-teal-500"
+        >
+          Generate Password
+        </motion.button>
+      </motion.div>
+    </div>
   );
 };
 
