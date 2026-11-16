@@ -38,31 +38,29 @@ const GeneratedPassword = () => {
           Generate Password
         </button>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl font-semibold tracking-tight text-slate-800">
-              Generated Password
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-700">Generated Password</h2>
             {passwordStrength && generatedPassword && (
-              <span className="rounded-full bg-emerald-200/90 px-3 py-1 text-sm font-semibold text-emerald-800">
+              <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
                 {passwordStrength}
               </span>
             )}
           </div>
 
           {generatedPassword && (
-            <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-100/80 p-3 shadow-inner shadow-emerald-200/30">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 id="generated-password"
                 type="text"
                 value={generatedPassword}
                 readOnly
-                className="min-w-0 flex-1 border-0 bg-transparent px-2 py-2 font-mono text-base text-emerald-950 outline-none placeholder:text-emerald-700/80"
+                className="min-w-0 flex-1 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 font-mono text-sm text-emerald-950 shadow-inner outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               />
               <button
                 type="button"
                 onClick={copyPassword}
-                className="shrink-0 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 py-3 text-base font-bold text-white shadow-md shadow-emerald-500/20 transition hover:brightness-105"
+                className="shrink-0 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-emerald-600/20 transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-200"
               >
                 {copyMessage || "Copy Password"}
               </button>
@@ -93,42 +91,22 @@ const GeneratedPassword = () => {
           </div>
 
           <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-blue-200 hover:bg-slate-50">
-            <input
-              className="size-4 accent-blue-600"
-              type="checkbox"
-              checked={includeNumbers}
-              onChange={toggleNumbers}
-            />
+            <input className="size-4 accent-blue-600" type="checkbox" checked={includeNumbers} onChange={toggleNumbers} />
             Include Numbers
           </label>
 
           <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-blue-200 hover:bg-slate-50">
-            <input
-              className="size-4 accent-blue-600"
-              type="checkbox"
-              checked={includeSymbols}
-              onChange={toggleSymbols}
-            />
+            <input className="size-4 accent-blue-600" type="checkbox" checked={includeSymbols} onChange={toggleSymbols} />
             Include Symbols
           </label>
 
           <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-blue-200 hover:bg-slate-50">
-            <input
-              className="size-4 accent-blue-600"
-              type="checkbox"
-              checked={includeUppercase}
-              onChange={toggleUppercase}
-            />
+            <input className="size-4 accent-blue-600" type="checkbox" checked={includeUppercase} onChange={toggleUppercase} />
             Include Uppercase Letters
           </label>
 
           <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-blue-200 hover:bg-slate-50">
-            <input
-              className="size-4 accent-blue-600"
-              type="checkbox"
-              checked={includeLowercase}
-              onChange={toggleLowercase}
-            />
+            <input className="size-4 accent-blue-600" type="checkbox" checked={includeLowercase} onChange={toggleLowercase} />
             Include Lowercase Letters
           </label>
         </div>
