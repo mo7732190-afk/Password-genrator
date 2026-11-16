@@ -44,25 +44,25 @@ const GeneratedPassword = () => {
               Generated Password
             </h2>
             {passwordStrength && generatedPassword && (
-              <span className="rounded-full bg-emerald-200 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">
                 {passwordStrength}
               </span>
             )}
           </div>
 
           {generatedPassword && (
-            <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-100/90 p-3 shadow-inner shadow-emerald-200/40">
+            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
               <input
                 id="generated-password"
                 type="text"
                 value={generatedPassword}
                 readOnly
-                className="min-w-0 flex-1 border-0 bg-transparent px-2 py-2 font-mono text-base text-emerald-950 outline-none"
+                className="min-w-0 flex-1 border-0 bg-transparent px-2 py-2 font-mono text-base text-slate-800 outline-none"
               />
               <button
                 type="button"
                 onClick={copyPassword}
-                className="shrink-0 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-emerald-600/20 transition hover:bg-emerald-700"
+                className="shrink-0 rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200"
               >
                 {copyMessage || "Copy Password"}
               </button>
