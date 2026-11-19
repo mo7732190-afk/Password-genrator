@@ -4,10 +4,10 @@ import { usePasswordStore } from "../store";
 
 const PASSWORD_PRESETS = [8, 12, 16, 24, 32, 64];
 const PIN_PRESETS = [
-  { label: "4 Digits (ATM)", value: 4 },
-  { label: "6 Digits (App/OTP)", value: 6 },
-  { label: "8 Digits (Bank)", value: 8 },
-  { label: "12 Digits (Master)", value: 12 },
+  { label: "ATM", value: 4 },
+  { label: "App / OTP", value: 6 },
+  { label: "Bank App", value: 8 },
+  { label: "Master PIN", value: 12 },
 ];
 
 const GeneratedPassword = () => {
@@ -100,6 +100,18 @@ const GeneratedPassword = () => {
     };
   }, [passwordStrength, isDark]);
 
+  // Formatted display for PIN (grouped on 1 line with clean spacing, never wraps awkwardly)
+  const formattedPinDisplay = useMemo(() => {
+    if (!generatedPassword || !isPinMode) return "";
+    const p = generatedPassword;
+    if (p.length === 4) return p.split("").join("   ");
+    if (p.length === 6) return `${p.slice(0, 3)}   ${p.slice(3)}`;
+    if (p.length === 8) return `${p.slice(0, 4)}  •  ${p.slice(4)}`;
+    if (p.length === 12) return `${p.slice(0, 4)}  •  ${p.slice(4, 8)}  •  ${p.slice(8)}`;
+    if (p.length === 16) return `${p.slice(0, 4)}  •  ${p.slice(4, 8)}  •  ${p.slice(8, 12)}  •  ${p.slice(12)}`;
+    return p.split("").join("  ");
+  }, [generatedPassword, isPinMode]);
+
   // Filter history based on search query
   const filteredHistory = useMemo(() => {
     if (!searchQuery.trim()) return history;
@@ -122,28 +134,9 @@ const GeneratedPassword = () => {
     return { total, pinCount, pwdCount };
   }, [history]);
 
-  // Syntax highlighting / spaced formatting for passwords and PINs
-  const renderedTokens = useMemo(() => {
-    if (!generatedPassword) return null;
-
-    if (isPinMode) {
-      return (
-        <span className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap">
-          {generatedPassword.split("").map((digit, index) => (
-            <span
-              key={index}
-              className={`inline-flex items-center justify-center font-mono font-black text-lg sm:text-2xl h-9 w-7 sm:h-12 sm:w-10 rounded-xl border transition-all ${
-                isDark
-                  ? "bg-slate-800/90 text-teal-300 border-teal-500/30 shadow-xs"
-                  : "bg-white text-teal-800 border-teal-200 shadow-xs"
-              }`}
-            >
-              {digit}
-            </span>
-          ))}
-        </span>
-      );
-    }
+  // Syntax highlighting for passwords
+  const renderedPasswordTokens = useMemo(() => {
+    if (!generatedPassword || isPinMode) return null;
 
     return generatedPassword.split("").map((char, index) => {
       let color = isDark ? "text-slate-100" : "text-slate-800";
@@ -263,7 +256,7 @@ const GeneratedPassword = () => {
         />
       </div>
 
-      {/* ================= TOPBAR (RESPONSIVE NO-OVERFLOW) ================= */}
+      {/* ================= TOPBAR ================= */}
       <header className="w-full max-w-6xl mb-4 sm:mb-6">
         <div className="flex items-center justify-between gap-3">
           {/* Brand */}
@@ -330,7 +323,7 @@ const GeneratedPassword = () => {
           </motion.button>
         </div>
 
-        {/* Mobile Tab Switcher: Full width 2nd row on mobile so it never gets squeezed! */}
+        {/* Mobile Tab Switcher */}
         <div className="mt-3.5 flex lg:hidden w-full">
           <div
             className={`flex w-full p-1 rounded-2xl border text-xs font-bold ${
@@ -384,7 +377,7 @@ const GeneratedPassword = () => {
         </div>
       </header>
 
-      {/* ================= HERO TITLE (MOBILE RESPONSIVE, ZERO CLIPPING) ================= */}
+      {/* ================= HERO TITLE ================= */}
       <section className="w-full max-w-6xl text-center mb-5 sm:mb-8 px-1">
         <div
           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mb-2.5 border shadow-xs ${
@@ -408,10 +401,10 @@ const GeneratedPassword = () => {
       </section>
 
       {/* ================= MAIN DASHBOARD (50% / 50% BALANCED GRID) ================= */}
-      <main className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-stretch">
-        {/* ================= CARD 1: GENERATOR (50% Desktop) ================= */}
+      <main className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 items-start">
+        {/* ================= CARD 1: GENERATOR ================= */}
         <section
-          className={`w-full rounded-3xl border transition-all duration-300 p-4 sm:p-7 shadow-xl flex flex-col justify-between ${
+          className={`w-full rounded-3xl border transition-all duration-300 p-4 sm:p-6 shadow-xl flex flex-col ${
             mobileTab === "history" ? "hidden lg:flex" : "flex"
           } ${
             isDark
@@ -419,8 +412,7 @@ const GeneratedPassword = () => {
               : "bg-white/95 backdrop-blur-xl border-slate-200/90 shadow-slate-200/70"
           }`}
         >
-          <div>
-            {/* Mode Switcher Tabs: Password vs Random PIN */}
+          {/* Mode Switcher Tabs */}
             <div
               className={`p-1.5 rounded-2xl border mb-4 sm:mb-5 flex items-center gap-1.5 ${
                 isDark ? "bg-[#060910] border-slate-800" : "bg-slate-100 border-slate-200"
@@ -461,21 +453,21 @@ const GeneratedPassword = () => {
               </button>
             </div>
 
-            {/* Subheader info & strength */}
+            {/* Subheader info */}
             <div className="flex items-center justify-between mb-2.5 px-1">
               <span className={`text-[11px] sm:text-xs font-bold uppercase tracking-wider ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                 {isPinMode ? "Generated Numeric PIN" : "Generated Password"}
               </span>
               <div className="flex items-center gap-1.5">
                 <span className={`text-xs font-bold ${strengthData.textColor}`}>
-                  {strengthData.label}
+                  {isPinMode ? `${pinLength}-Digit Numeric PIN` : strengthData.label}
                 </span>
               </div>
             </div>
 
-            {/* Hero Password / PIN Display Box */}
+            {/* Hero Display Box (Never wraps awkwardly, single unified line!) */}
             <div
-              className={`relative rounded-2xl border p-3.5 sm:p-5 transition-all mb-4 ${
+              className={`relative rounded-2xl border p-4 sm:p-5 transition-all mb-4 ${
                 isDark
                   ? "bg-[#060910] border-slate-800 shadow-inner"
                   : "bg-slate-50 border-slate-200 shadow-inner"
@@ -486,21 +478,34 @@ const GeneratedPassword = () => {
                 type="text"
                 readOnly
                 value={generatedPassword}
-                aria-label="Generated Password or PIN"
+                aria-label={isPinMode ? "Generated PIN" : "Generated Password"}
                 className="absolute opacity-0 pointer-events-none"
               />
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="min-w-0 flex-1 overflow-x-auto py-1 scrollbar-none font-mono text-base sm:text-2xl font-bold tracking-wider select-all">
-                  {renderedTokens || (
-                    <span className={`text-sm font-normal ${isDark ? "text-slate-500" : "text-slate-400"}`}>
-                      Tap generate below...
-                    </span>
+              <div className="flex items-center justify-between gap-3">
+                {/* Center / Left display */}
+                <div className="min-w-0 flex-1 overflow-x-auto py-1 scrollbar-none font-mono select-all">
+                  {isPinMode ? (
+                    <div
+                      className={`text-xl sm:text-2xl md:text-3xl font-black tracking-wider truncate ${
+                        isDark ? "text-teal-300" : "text-teal-700"
+                      }`}
+                    >
+                      {formattedPinDisplay || "----"}
+                    </div>
+                  ) : (
+                    <div className="text-base sm:text-xl font-bold tracking-wider truncate">
+                      {renderedPasswordTokens || (
+                        <span className={`text-sm font-normal ${isDark ? "text-slate-500" : "text-slate-400"}`}>
+                          Tap generate below...
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
-                  {/* Regenerate Button */}
+                {/* Regenerate + Copy Buttons */}
+                <div className="flex items-center gap-1.5 shrink-0">
                   <motion.button
                     whileTap={{ scale: 0.88 }}
                     type="button"
@@ -522,7 +527,6 @@ const GeneratedPassword = () => {
                     </svg>
                   </motion.button>
 
-                  {/* Primary Copy Button */}
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.94 }}
@@ -564,54 +568,91 @@ const GeneratedPassword = () => {
                 </div>
               </div>
 
-              {/* Segmented Strength Bar */}
-              <div className="mt-3.5 flex items-center gap-1.5">
-                {[1, 2, 3, 4].map((bar) => {
-                  const isActive = bar <= strengthData.score;
-                  return (
-                    <div
-                      key={bar}
-                      className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                        isActive
-                          ? strengthData.barColor
-                          : isDark
-                          ? "bg-slate-800"
-                          : "bg-slate-200"
-                      }`}
-                    />
-                  );
-                })}
-              </div>
+              {/* Segmented Strength Bar ONLY for Password mode */}
+              {!isPinMode && (
+                <div className="mt-3.5 flex items-center gap-1.5">
+                  {[1, 2, 3, 4].map((bar) => {
+                    const isActive = bar <= strengthData.score;
+                    return (
+                      <div
+                        key={bar}
+                        className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                          isActive
+                            ? strengthData.barColor
+                            : isDark
+                            ? "bg-slate-800"
+                            : "bg-slate-200"
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
-            {/* Password vs PIN Controls */}
+            {/* ================= CONTROLS SECTION ================= */}
             {isPinMode ? (
-              /* ================= PIN CONTROLS ================= */
+              /* CLEAN PIN CONTROLS (Zero clutter) */
               <div className="space-y-4">
+                {/* Standard PIN Formats Grid */}
                 <div>
+                  <div className="flex items-center justify-between mb-2 px-0.5">
+                    <span className="text-xs sm:text-sm font-bold">Standard PIN Lengths</span>
+                    <span
+                      className={`font-mono text-xs font-extrabold px-2.5 py-0.5 rounded-lg border ${
+                        isDark ? "bg-slate-800 text-teal-400 border-slate-700" : "bg-teal-50 text-teal-700 border-teal-200"
+                      }`}
+                    >
+                      {pinLength} Digits
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {PIN_PRESETS.map((p) => (
+                      <button
+                        key={p.value}
+                        type="button"
+                        onClick={() => setPinLength(p.value)}
+                        className={`p-3 rounded-2xl text-xs font-bold border transition text-center cursor-pointer flex flex-col items-center gap-1 ${
+                          pinLength === p.value
+                            ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-600/30 scale-[1.02]"
+                            : isDark
+                            ? "bg-[#060910] text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white"
+                            : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:text-slate-900 shadow-xs"
+                        }`}
+                      >
+                        <span className="text-sm font-black">{p.value} Digits</span>
+                        <span className="text-[10px] font-medium opacity-80">{p.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom length slider */}
+                <div
+                  className={`p-3 sm:p-4 rounded-2xl border ${
+                    isDark ? "bg-[#060910]/80 border-slate-800" : "bg-slate-50 border-slate-200"
+                  }`}
+                >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs sm:text-sm font-bold">PIN Digits Length</span>
+                    <span className={`text-xs font-semibold ${isDark ? "text-slate-300" : "text-slate-700"}`}>
+                      Custom Range (4 to 16 digits)
+                    </span>
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
                         onClick={() => adjustLength(-1)}
-                        className={`h-7 w-7 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition cursor-pointer ${
+                        className={`h-6 w-6 rounded-md border flex items-center justify-center font-mono font-bold text-xs transition cursor-pointer ${
                           isDark ? "bg-slate-800 border-slate-700 hover:bg-slate-700" : "bg-white border-slate-200 hover:bg-slate-100"
                         }`}
                       >
                         -
                       </button>
-                      <span
-                        className={`font-mono text-xs sm:text-sm font-extrabold px-3 py-1 rounded-lg border ${
-                          isDark ? "bg-slate-800 text-teal-400 border-slate-700" : "bg-teal-50 text-teal-700 border-teal-200"
-                        }`}
-                      >
-                        {pinLength} Digits
-                      </span>
+                      <span className="text-xs font-mono font-black text-teal-500 min-w-5 text-center">{pinLength}</span>
                       <button
                         type="button"
                         onClick={() => adjustLength(1)}
-                        className={`h-7 w-7 rounded-lg border flex items-center justify-center font-mono font-bold text-xs transition cursor-pointer ${
+                        className={`h-6 w-6 rounded-md border flex items-center justify-center font-mono font-bold text-xs transition cursor-pointer ${
                           isDark ? "bg-slate-800 border-slate-700 hover:bg-slate-700" : "bg-white border-slate-200 hover:bg-slate-100"
                         }`}
                       >
@@ -619,7 +660,6 @@ const GeneratedPassword = () => {
                       </button>
                     </div>
                   </div>
-
                   <input
                     type="range"
                     min={4}
@@ -630,28 +670,9 @@ const GeneratedPassword = () => {
                       isDark ? "bg-slate-800" : "bg-slate-200"
                     }`}
                   />
-
-                  {/* Common PIN presets */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
-                    {PIN_PRESETS.map((p) => (
-                      <button
-                        key={p.value}
-                        type="button"
-                        onClick={() => setPinLength(p.value)}
-                        className={`p-2 rounded-xl text-xs font-bold border transition text-center cursor-pointer ${
-                          pinLength === p.value
-                            ? "bg-teal-600 text-white border-teal-600 shadow-xs"
-                            : isDark
-                            ? "bg-slate-800/60 text-slate-400 border-slate-800 hover:text-white"
-                            : "bg-white text-slate-600 border-slate-200 hover:text-slate-900"
-                        }`}
-                      >
-                        {p.label}
-                      </button>
-                    ))}
-                  </div>
                 </div>
 
+                {/* Generate PIN button */}
                 <motion.button
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
@@ -666,7 +687,7 @@ const GeneratedPassword = () => {
                 </motion.button>
               </div>
             ) : (
-              /* ================= PASSWORD CONTROLS ================= */
+              /* PASSWORD CONTROLS */
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -711,7 +732,6 @@ const GeneratedPassword = () => {
                     }`}
                   />
 
-                  {/* Preset buttons */}
                   <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
                     <span className={`text-[11px] font-medium mr-1 ${isDark ? "text-slate-500" : "text-slate-400"}`}>
                       Presets:
@@ -735,7 +755,6 @@ const GeneratedPassword = () => {
                   </div>
                 </div>
 
-                {/* Character Set Tiles */}
                 <div>
                   <span className="text-xs sm:text-sm font-bold block mb-2">Character Types</span>
                   <div className="grid grid-cols-2 gap-2">
@@ -795,12 +814,11 @@ const GeneratedPassword = () => {
                 </motion.button>
               </div>
             )}
-          </div>
         </section>
 
-        {/* ================= CARD 2: SAVED HISTORY (50% Desktop, Full Responsive) ================= */}
+        {/* ================= CARD 2: SAVED HISTORY ================= */}
         <section
-          className={`w-full rounded-3xl border transition-all duration-300 p-4 sm:p-7 shadow-xl flex flex-col justify-between ${
+          className={`w-full rounded-3xl border transition-all duration-300 p-4 sm:p-6 shadow-xl flex flex-col ${
             mobileTab === "generator" ? "hidden lg:flex" : "flex"
           } ${
             isDark
@@ -910,7 +928,6 @@ const GeneratedPassword = () => {
                         {/* Password / PIN Line + Quick Actions */}
                         <div className="flex items-center justify-between gap-2 mb-2">
                           <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                            {/* Category Badge */}
                             <span
                               className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase shrink-0 border ${
                                 isItemPin
