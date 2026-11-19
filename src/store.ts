@@ -28,10 +28,13 @@ export interface PasswordHistoryItem {
     timestamp: number;
     formattedDate: string;
     formattedTime: string;
+    category?: "password" | "pin";
 }
 
 type PasswordState = {
     length: number;
+    pinLength: number;
+    generatorMode: "password" | "pin";
     includeNumbers: boolean;
     includeSymbols: boolean;
     includeUppercase: boolean;
@@ -41,12 +44,15 @@ type PasswordState = {
     history: PasswordHistoryItem[];
     theme: "dark" | "light";
     setLength: (length: number) => void;
+    setPinLength: (len: number) => void;
+    setGeneratorMode: (mode: "password" | "pin") => void;
     toggleNumbers: () => void;
     toggleSymbols: () => void;
     toggleUppercase: () => void;
     toggleLowercase: () => void;
     toggleTheme: () => void;
     generatePassword: () => void;
+    generatePin: () => void;
     deleteHistoryItem: (id: string) => void;
     clearHistory: () => void;
 };
@@ -54,7 +60,9 @@ type PasswordState = {
 export const usePasswordStore = create<PasswordState>()(
     persist(
         (set) => ({
-            length: 12,
+            length: 16,
+            pinLength: 6,
+            generatorMode: "password",
             includeNumbers: true,
             includeSymbols: true,
             includeUppercase: true,
@@ -65,6 +73,8 @@ export const usePasswordStore = create<PasswordState>()(
             theme: "dark",
 
             setLength: (length) => set({ length: Math.min(128, Math.max(4, length || 4)) }),
+            setPinLength: (pinLength) => set({ pinLength: Math.min(16, Math.max(4, pinLength || 4)) }),
+            setGeneratorMode: (generatorMode) => set({ generatorMode }),
             toggleNumbers: () => set((state) => ({ includeNumbers: !state.includeNumbers })),
             toggleSymbols: () => set((state) => ({ includeSymbols: !state.includeSymbols })),
             toggleUppercase: () => set((state) => ({ includeUppercase: !state.includeUppercase })),
@@ -128,11 +138,54 @@ export const usePasswordStore = create<PasswordState>()(
                     timestamp: now.getTime(),
                     formattedDate,
                     formattedTime,
+                    category: "password",
                 };
 
                 return {
                     generatedPassword: password,
                     passwordStrength,
+                    history: [newHistoryItem, ...(state.history || [])],
+                };
+            }),
+
+            generatePin: () => set((state) => {
+                const pinLen = Math.min(16, Math.max(4, state.pinLength || 6));
+                const digits = "0123456789";
+                let pin = "";
+                for (let i = 0; i < pinLen; i++) {
+                    pin += digits[secureRandomIndex(digits.length)];
+                }
+
+                const pinStrength =
+                    pinLen >= 8 ? "Ultra Secure PIN" : pinLen >= 6 ? "Strong 6-Digit PIN" : "Standard 4-Digit PIN";
+
+                const now = new Date();
+                const formattedDate = now.toLocaleDateString("en-US", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                });
+                const formattedTime = now.toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: true,
+                });
+
+                const newHistoryItem: PasswordHistoryItem = {
+                    id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+                    password: pin,
+                    strength: pinStrength,
+                    length: pinLen,
+                    timestamp: now.getTime(),
+                    formattedDate,
+                    formattedTime,
+                    category: "pin",
+                };
+
+                return {
+                    generatedPassword: pin,
+                    passwordStrength: pinStrength,
                     history: [newHistoryItem, ...(state.history || [])],
                 };
             }),
