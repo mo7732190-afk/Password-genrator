@@ -41,7 +41,9 @@ const GeneratedPassword = () => {
     includeLowercase,
     toggleLowercase,
     generatedPassword,
+    generatedPin,
     passwordStrength,
+    pinStrength,
     history = [],
     theme = "dark",
     toggleTheme,
@@ -53,17 +55,15 @@ const GeneratedPassword = () => {
 
   const isDark = theme === "dark";
   const isPinMode = generatorMode === "pin";
+  const activeOutput = isPinMode ? generatedPin : generatedPassword;
 
-  // Auto-generate on initial mount if empty
+  // Generate once on initial mount ONLY if store has no password or pin yet
   useEffect(() => {
-    if (!generatedPassword) {
-      if (isPinMode) {
-        generatePin();
-      } else {
-        generatePassword();
-      }
+    const state = usePasswordStore.getState();
+    if (!state.generatedPassword && !state.generatedPin) {
+      generatePassword();
     }
-  }, [generatedPassword, isPinMode, generatePassword, generatePin]);
+  }, [generatePassword]);
 
   // Cleanup timeout refs on unmount
   useEffect(() => {
@@ -102,15 +102,15 @@ const GeneratedPassword = () => {
 
   // Formatted display for PIN (grouped on 1 line with clean spacing, never wraps awkwardly)
   const formattedPinDisplay = useMemo(() => {
-    if (!generatedPassword || !isPinMode) return "";
-    const p = generatedPassword;
+    if (!generatedPin) return "";
+    const p = generatedPin;
     if (p.length === 4) return p.split("").join("   ");
     if (p.length === 6) return `${p.slice(0, 3)}   ${p.slice(3)}`;
     if (p.length === 8) return `${p.slice(0, 4)}  •  ${p.slice(4)}`;
     if (p.length === 12) return `${p.slice(0, 4)}  •  ${p.slice(4, 8)}  •  ${p.slice(8)}`;
     if (p.length === 16) return `${p.slice(0, 4)}  •  ${p.slice(4, 8)}  •  ${p.slice(8, 12)}  •  ${p.slice(12)}`;
     return p.split("").join("  ");
-  }, [generatedPassword, isPinMode]);
+  }, [generatedPin]);
 
   // Filter history based on search query
   const filteredHistory = useMemo(() => {
@@ -159,13 +159,13 @@ const GeneratedPassword = () => {
   // 3. useCallback Hooks
   // ========================================================
   const copyPassword = useCallback(async () => {
-    if (!generatedPassword) return;
+    if (!activeOutput) return;
 
     passwordInputRef.current?.select();
     passwordInputRef.current?.setSelectionRange(0, 99999);
 
     try {
-      await navigator.clipboard.writeText(generatedPassword);
+      await navigator.clipboard.writeText(activeOutput);
       setCopyMessage("Copied!");
 
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
@@ -175,7 +175,7 @@ const GeneratedPassword = () => {
     } catch {
       setCopyMessage("Failed");
     }
-  }, [generatedPassword]);
+  }, [activeOutput]);
 
   const copyHistoryPassword = useCallback(async (id: string, password: string) => {
     try {
@@ -208,13 +208,8 @@ const GeneratedPassword = () => {
   const handleModeSwitch = useCallback(
     (mode: "password" | "pin") => {
       setGeneratorMode(mode);
-      if (mode === "pin") {
-        generatePin();
-      } else {
-        generatePassword();
-      }
     },
-    [setGeneratorMode, generatePin, generatePassword]
+    [setGeneratorMode]
   );
 
   const handleDeleteItem = useCallback(
@@ -250,7 +245,7 @@ const GeneratedPassword = () => {
       {/* Ambient background glow */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
         <div
-          className={`absolute left-1/2 top-0 h-[420px] w-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[130px] transition-opacity duration-700 ${
+          className={`absolute left-1/2 top-0 h-105 w-225 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[130px] transition-opacity duration-700 ${
             isDark ? "bg-teal-500/15 opacity-100" : "bg-teal-500/10 opacity-70"
           }`}
         />
@@ -392,7 +387,7 @@ const GeneratedPassword = () => {
           <span>Ultra-Secure Client-Side Security</span>
         </div>
 
-        <h1 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight leading-snug break-words">
+        <h1 className="text-xl sm:text-3xl md:text-4xl font-black tracking-tight leading-snug wrap-break-word">
           Strong Password &amp; <span className="text-teal-500">Random PIN</span> Generator
         </h1>
         <p className={`mt-1.5 text-xs sm:text-sm max-w-xl mx-auto font-medium ${isDark ? "text-slate-400" : "text-slate-600"}`}>
@@ -460,7 +455,7 @@ const GeneratedPassword = () => {
               </span>
               <div className="flex items-center gap-1.5">
                 <span className={`text-xs font-bold ${strengthData.textColor}`}>
-                  {isPinMode ? `${pinLength}-Digit Numeric PIN` : strengthData.label}
+                  {isPinMode ? (pinStrength || `${pinLength}-Digit Numeric PIN`) : strengthData.label}
                 </span>
               </div>
             </div>
@@ -477,7 +472,7 @@ const GeneratedPassword = () => {
                 ref={passwordInputRef}
                 type="text"
                 readOnly
-                value={generatedPassword}
+                value={activeOutput}
                 aria-label={isPinMode ? "Generated PIN" : "Generated Password"}
                 className="absolute opacity-0 pointer-events-none"
               />
@@ -532,7 +527,7 @@ const GeneratedPassword = () => {
                     whileTap={{ scale: 0.94 }}
                     type="button"
                     onClick={copyPassword}
-                    disabled={!generatedPassword}
+                    disabled={!activeOutput}
                     className="px-3.5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 active:bg-teal-700 text-white text-xs font-bold transition shadow-md shadow-teal-600/20 disabled:opacity-40 flex items-center gap-1.5 cursor-pointer"
                   >
                     <AnimatePresence mode="wait" initial={false}>
@@ -678,7 +673,7 @@ const GeneratedPassword = () => {
                   whileTap={{ scale: 0.98 }}
                   type="button"
                   onClick={handleGenerate}
-                  className="w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 active:from-teal-600 active:to-emerald-700 text-white font-black text-sm sm:text-base shadow-lg shadow-teal-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  className="w-full py-3.5 sm:py-4 rounded-2xl bg-linear-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 active:from-teal-600 active:to-emerald-700 text-white font-black text-sm sm:text-base shadow-lg shadow-teal-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
@@ -791,7 +786,7 @@ const GeneratedPassword = () => {
                               : "bg-slate-100 text-transparent"
                           }`}
                         >
-                          <svg className="w-3 h-3 stroke-[3]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg className="w-3 h-3 stroke-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
@@ -805,7 +800,7 @@ const GeneratedPassword = () => {
                   whileTap={{ scale: 0.98 }}
                   type="button"
                   onClick={handleGenerate}
-                  className="w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 active:from-teal-600 active:to-emerald-700 text-white font-black text-sm sm:text-base shadow-lg shadow-teal-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  className="w-full py-3.5 sm:py-4 rounded-2xl bg-linear-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 active:from-teal-600 active:to-emerald-700 text-white font-black text-sm sm:text-base shadow-lg shadow-teal-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -884,11 +879,11 @@ const GeneratedPassword = () => {
             {/* Scrollable list container with custom sleek scrollbar */}
             <div
               ref={historyContainerRef}
-              className="flex-1 min-h-[340px] max-h-[460px] sm:max-h-[500px] overflow-y-auto space-y-2.5 pr-1.5 pt-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-700/40 [&::-webkit-scrollbar-thumb]:rounded-full"
+              className="flex-1 min-h-85 max-h-115 sm:max-h-125 overflow-y-auto space-y-2.5 pr-1.5 pt-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-700/40 [&::-webkit-scrollbar-thumb]:rounded-full"
             >
               {filteredHistory.length === 0 ? (
                 <div
-                  className={`flex h-full min-h-[280px] flex-col items-center justify-center rounded-2xl border border-dashed p-6 text-center ${
+                  className={`flex h-full min-h-70 flex-col items-center justify-center rounded-2xl border border-dashed p-6 text-center ${
                     isDark ? "border-slate-800 text-slate-500" : "border-slate-200 text-slate-400"
                   }`}
                 >
@@ -900,7 +895,7 @@ const GeneratedPassword = () => {
                   <p className="text-xs font-bold text-slate-400">
                     {searchQuery ? "No matches found" : "No items generated yet"}
                   </p>
-                  <p className="text-[11px] mt-1 max-w-[200px]">
+                  <p className="text-[11px] mt-1 max-w-50">
                     {searchQuery
                       ? "Try searching for a different keyword."
                       : "Generated passwords & PINs will be safely stored here."}
