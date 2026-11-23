@@ -40,7 +40,9 @@ type PasswordState = {
     includeUppercase: boolean;
     includeLowercase: boolean;
     generatedPassword: string;
+    generatedPin: string;
     passwordStrength: string;
+    pinStrength: string;
     history: PasswordHistoryItem[];
     theme: "dark" | "light";
     setLength: (length: number) => void;
@@ -68,7 +70,9 @@ export const usePasswordStore = create<PasswordState>()(
             includeUppercase: true,
             includeLowercase: true,
             generatedPassword: "",
+            generatedPin: "",
             passwordStrength: "",
+            pinStrength: "",
             history: [],
             theme: "dark",
 
@@ -184,8 +188,8 @@ export const usePasswordStore = create<PasswordState>()(
                 };
 
                 return {
-                    generatedPassword: pin,
-                    passwordStrength: pinStrength,
+                    generatedPin: pin,
+                    pinStrength,
                     history: [newHistoryItem, ...(state.history || [])],
                 };
             }),
